@@ -12,7 +12,7 @@ variables:
   GCP_PROJECT_NUMBER: '541737692705'
   GCP_REGION: 'us-central1'
   GCP_WIF_POOL_ID: 'azdo-wif-pool'
-  GCP_WIF_PROVIDER_ID: 'azdo-oidc'
+  GCP_WIF_PROVIDER_ID: 'azure-devops-oidc'
   GCP_DEPLOYER_SA_EMAIL: 'cicd-sa@gen-lang-client-0511268322.iam.gserviceaccount.com'
   AZURE_SERVICE_CONNECTION: 'azdo-to-gcp-wif-deploy'
 
