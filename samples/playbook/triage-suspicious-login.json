@@ -1,0 +1,18 @@
+{
+  "contract_version": "1.0",
+  "correlation_id": "corr-001",
+  "source_system": "google_secops_soar",
+  "playbook_name": "triage-suspicious-login",
+  "requested_action": "triage_suspicious_login",
+  "case": {
+    "case_id": "case-001",
+    "alert_id": "alert-001",
+    "severity": "medium",
+    "title": "Suspicious login test"
+  },
+  "observables": [
+    { "type": "user", "value": "alice@example.com" },
+    { "type": "ip", "value": "203.0.113.10" }
+  ],
+  "dry_run": true
+}

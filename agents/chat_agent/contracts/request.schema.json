@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "required": ["contract_version", "session_id", "message"],
+  "properties": {
+    "contract_version": { "type": "string", "const": "1.0" },
+    "session_id": { "type": "string" },
+    "message": { "type": "string", "maxLength": 2000 },
+    "context": { "type": "object" }
+  },
+  "additionalProperties": false
+}
