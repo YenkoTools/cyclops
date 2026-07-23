@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "required": ["contract_version", "session_id", "answer", "citations"],
+  "properties": {
+    "contract_version": { "type": "string", "const": "1.0" },
+    "session_id": { "type": "string" },
+    "answer": { "type": "string", "maxLength": 4000 },
+    "citations": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

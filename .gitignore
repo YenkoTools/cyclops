@@ -1,17 +1,17 @@
-# Local/temp auth artifacts
 .wif/
-*.adc.json
-*.cred.json
-*.token
-
-# Python
 __pycache__/
 *.pyc
 .venv/
 venv/
-
-# OS/editor
+.pytest_cache/
+.mypy_cache/
+.coverage
+dist/
+build/
 .DS_Store
 Thumbs.db
-.vscode/
 .idea/
+.vscode/
+*.adc.json
+*.cred.json
+*.token

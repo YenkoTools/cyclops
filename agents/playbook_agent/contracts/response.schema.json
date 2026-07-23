@@ -1,0 +1,48 @@
+{
+  "type": "object",
+  "required": [
+    "contract_version",
+    "correlation_id",
+    "status",
+    "summary",
+    "recommended_severity",
+    "recommended_next_step",
+    "artifacts",
+    "tool_results"
+  ],
+  "properties": {
+    "contract_version": { "type": "string", "const": "1.0" },
+    "correlation_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["success", "validation_error", "tool_error", "agent_error"] },
+    "summary": { "type": "string", "maxLength": 500 },
+    "recommended_severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+    "recommended_next_step": {
+      "type": "string",
+      "enum": ["close_case", "collect_more_context", "escalate_to_analyst", "block_indicator"]
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "value"],
+        "properties": {
+          "type": { "type": "string" },
+          "value": { "type": "string" }
+        }
+      }
+    },
+    "tool_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tool_name", "status"],
+        "properties": {
+          "tool_name": { "type": "string" },
+          "status": { "type": "string", "enum": ["success", "skipped", "failed"] },
+          "result_ref": { "type": "string" }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
