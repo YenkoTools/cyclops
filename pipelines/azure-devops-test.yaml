@@ -1,16 +1,102 @@
 trigger:
 - main
 
+pr:
+- main
+
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- checkout: self
+variables:
+  GCP_PROJECT_ID: 'gen-lang-client-0511268322'
+  GCP_PROJECT_NUMBER: '541737692705'
+  GCP_REGION: 'us-central1'
+  GCP_WIF_POOL_ID: 'azdo-wif-pool'
+  GCP_WIF_PROVIDER_ID: 'azdo-oidc'
+  GCP_DEPLOYER_SA_EMAIL: 'cicd-sa@gen-lang-client-0511268322.iam.gserviceaccount.com'
+  AZURE_SERVICE_CONNECTION: 'azdo-to-gcp-wif-deploy'
 
-- script: |
-    echo "Pipeline is connected to GitHub repo cyclops"
-    echo "Branch: $(Build.SourceBranch)"
-    echo "Commit: $(Build.SourceVersion)"
-    pwd
-    ls -la
-  displayName: 'Smoke test GitHub -> Azure DevOps'
+stages:
+- stage: AuthSmokeTest
+  displayName: 'Auth smoke test to GCP'
+  jobs:
+  - job: TestGoogleAuth
+    displayName: 'Test Azure DevOps -> GCP WIF'
+    steps:
+    - checkout: self
+
+    - task: AzureCLI@2
+      displayName: 'Get Azure federated token'
+      inputs:
+        azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+        scriptType: bash
+        scriptLocation: inlineScript
+        addSpnToEnvironment: true
+        inlineScript: |
+          set -euo pipefail
+
+          echo "Azure service connection is usable."
+          az account show --output table
+
+          if [ -z "${idToken:-}" ]; then
+            echo "idToken was not provided by AzureCLI task."
+            exit 1
+          fi
+
+          echo "OIDC token received from Azure DevOps/Azure."
+          echo "Token length: ${#idToken}"
+
+          mkdir -p "$(Build.SourcesDirectory)/.wif"
+          printf '%s' "$idToken" > "$(Build.SourcesDirectory)/.wif/azure-oidc-token"
+
+    - script: |
+        set -euo pipefail
+
+        sudo apt-get update
+        sudo apt-get install -y curl jq
+
+        export CLOUDSDK_CORE_DISABLE_PROMPTS=1
+
+        curl -sSL https://sdk.cloud.google.com | bash > /dev/null
+        source "$HOME/google-cloud-sdk/path.bash.inc"
+
+        gcloud --version
+      displayName: 'Install gcloud SDK'
+
+    - script: |
+        set -euo pipefail
+
+        cat > "$(Build.SourcesDirectory)/.wif/gcp-cred-config.json" <<EOF
+        {
+          "type": "external_account",
+          "audience": "//iam.googleapis.com/projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${GCP_WIF_POOL_ID}/providers/${GCP_WIF_PROVIDER_ID}",
+          "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
+          "token_url": "https://sts.googleapis.com/v1/token",
+          "credential_source": {
+            "file": "$(Build.SourcesDirectory)/.wif/azure-oidc-token"
+          },
+          "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${GCP_DEPLOYER_SA_EMAIL}:generateAccessToken"
+        }
+        EOF
+
+        export GOOGLE_APPLICATION_CREDENTIALS="$(Build.SourcesDirectory)/.wif/gcp-cred-config.json"
+
+        source "$HOME/google-cloud-sdk/path.bash.inc"
+
+        gcloud auth login --cred-file="$GOOGLE_APPLICATION_CREDENTIALS"
+        gcloud config set project "$GCP_PROJECT_ID"
+
+        echo "Authenticated identities:"
+        gcloud auth list
+
+        echo "Project lookup:"
+        gcloud projects describe "$GCP_PROJECT_ID" --format="value(projectId,projectNumber,name)"
+
+        echo "Artifact Registry lookup:"
+        gcloud artifacts repositories list --location="$GCP_REGION" || true
+      displayName: 'Exchange token and call GCP'
+
+    - script: |
+        rm -rf "$(Build.SourcesDirectory)/.wif"
+      displayName: 'Cleanup temporary auth files'
+      condition: always()
