@@ -1,0 +1,17 @@
+# Local/temp auth artifacts
+.wif/
+*.adc.json
+*.cred.json
+*.token
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
