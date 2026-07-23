@@ -1,0 +1,16 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- checkout: self
+
+- script: |
+    echo "Pipeline is connected to GitHub repo cyclops"
+    echo "Branch: $(Build.SourceBranch)"
+    echo "Commit: $(Build.SourceVersion)"
+    pwd
+    ls -la
+  displayName: 'Smoke test GitHub -> Azure DevOps'
